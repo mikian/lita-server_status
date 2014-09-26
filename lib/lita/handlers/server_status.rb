@@ -5,10 +5,19 @@ module Lita
         config.regex = /(.+) is starting deploy of '(.+)' from branch '(.+)' to (.+)/i
       end
 
-      route(Lita.config.handlers.server_status.regex, :save_status)
+      # route(Lita.config.handlers.server_status.regex, :save_status)
       route(/server status/i, :list_statuses, command: true,
             help: { "server status" => "List out the current server statuses." }
       )
+
+      def initialize(robot)
+        super
+
+        # Define dynamically our route
+        class << self
+          route(config.regex, :save_status)
+        end
+      end
 
       def save_status(response)
         message = response.message.body
