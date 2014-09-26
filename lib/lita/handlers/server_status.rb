@@ -1,9 +1,11 @@
 module Lita
   module Handlers
     class ServerStatus < Handler
-      MESSAGE_REGEX = /(.+) is starting deploy of '(.+)' from branch '(.+)' to (.+)/i
+      def self.default_config(config)
+        config.regex = /(.+) is starting deploy of '(.+)' from branch '(.+)' to (.+)/i
+      end
 
-      route(MESSAGE_REGEX, :save_status)
+      route(Lita.config.handlers.server_status.regex, :save_status)
       route(/server status/i, :list_statuses, command: true,
             help: { "server status" => "List out the current server statuses." }
       )
@@ -11,6 +13,7 @@ module Lita
       def save_status(response)
         message = response.message.body
         user, application, branch, environment = message.match(MESSAGE_REGEX).captures
+        Lita.logger.debug "#{application} #{environment}: #{branch} (#{user} @ #{formatted_time})"
 
         apply_status = { id: "#{application}:#{environment}",
                          message: "#{application} #{environment}: #{branch} (#{user} @ #{formatted_time})" }
